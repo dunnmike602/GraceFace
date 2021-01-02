@@ -12,6 +12,7 @@ global close_file
 global fork
 global exec
 global read_root_directory
+global read_process_info
 
 writeu:
     sub rsp,16
@@ -169,5 +170,15 @@ read_root_directory:
     add rsp,8
     ret
 
+read_process_info:
+    sub rsp,8
+    mov eax,13
 
+    mov [rsp],rdi
+    mov rdi,1
+    mov rsi,rsp
 
+    int 0x80
+
+    add rsp,8
+    ret

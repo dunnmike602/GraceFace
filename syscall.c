@@ -98,6 +98,11 @@ static int sys_read_root_directory(int64_t *argptr)
     return read_root_directory((char*)argptr[0]);
 }
 
+static int sys_read_process_info(int64_t *argptr)
+{
+    return read_process_info((char*)argptr[0]);
+}
+
 void init_system_call(void)
 {
     system_calls[0] = sys_write;
@@ -113,6 +118,7 @@ void init_system_call(void)
     system_calls[10] = sys_fork; 
     system_calls[11] = sys_exec; 
     system_calls[12] = sys_read_root_directory; 
+    system_calls[13] = sys_read_process_info;
 }
 
 void system_call(struct TrapFrame *tf)
@@ -121,7 +127,7 @@ void system_call(struct TrapFrame *tf)
     int64_t param_count = tf->rdi;
     int64_t *argptr = (int64_t*)tf->rsi;
 
-    if (param_count < 0 || i > 12 || i < 0) { 
+    if (param_count < 0 || i > 13 || i < 0) { 
         tf->rax = -1;
         return;
     }

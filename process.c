@@ -86,12 +86,16 @@ static void init_idle_process(void)
     process->pid = 0;
     process->page_map = P2V(read_cr3());
     process->state = PROC_RUNNING;
+    process->ticks = 1;
 
+    char idleName[] =  "IDLE    " ;
+    memcpy(process->name, &idleName, 8);
+ 
     process_control = get_pc();
     process_control->current_process = process;
 }
 
-static void init_user_process(void)
+static void init_console_process(void)
 {
     struct ProcessControl *process_control;
     struct Process *process;
@@ -105,6 +109,9 @@ static void init_user_process(void)
 
     ASSERT(setup_uvm(process->page_map, P2V(0x30000), 5120));
 
+    char consoleName[] =  "CONSOLE    " ;
+    memcpy(process->name, &consoleName, 8);
+
     process->state = PROC_READY;
     append_list_tail(list, (struct List*)process);
 }
@@ -112,7 +119,7 @@ static void init_user_process(void)
 void init_process(void)
 {
     init_idle_process();
-    init_user_process();
+    init_console_process();
 }
 
 static void switch_process(struct Process *prev, struct Process *current)
@@ -140,7 +147,7 @@ static void schedule(void)
         current_proc = (struct Process*)remove_list_head(list);
     }
     
-    current_proc->state = PROC_RUNNING;   
+    current_proc->state = PROC_RUNNING;  
     process_control->current_process = current_proc;
 
     switch_process(prev_proc, current_proc);   
@@ -156,6 +163,7 @@ void yield(void)
     list = &process_control->ready_list;
 
     if (is_list_empty(list)) {
+        process_control->current_process->ticks++; 
         return;
     }
 
@@ -167,6 +175,8 @@ void yield(void)
     }
 
     schedule();
+
+    process_control->current_process->ticks++; 
 }
 
 void sleep(int wait)
@@ -297,6 +307,8 @@ int fork(void)
 
 int exec(struct Process *process, char* name)
 {
+    memcpy(process->name, name, 8);
+
     int fd;
     uint32_t size;
     
@@ -324,4 +336,21 @@ int exec(struct Process *process, char* name)
     process->tf->rflags = 0x202;
 
     return 0;
+}
+
+int read_process_info(char *buffer)
+{
+    static struct ProcessInfo process_info_table[NUM_PROC];
+
+    for (int i = 0; i < NUM_PROC; i++) {
+
+        process_info_table[i].pid = process_table[i].pid;
+        process_info_table[i].state = process_table[i].state;
+        memcpy(&process_info_table[i].name, &process_table[i].name, 8);
+        process_info_table[i].time = process_table[i].ticks * 10; 
+    }
+    
+    memcpy(buffer, process_info_table, NUM_PROC * sizeof(struct ProcessInfo));
+
+    return NUM_PROC;
 }

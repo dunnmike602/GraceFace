@@ -85,7 +85,7 @@ static bool is_file_name_equal(struct DirEntry *dir_entry, char *name, char *ext
     return status;
 }
 
-static bool split_path(char *path, char *name, char *ext)
+bool split_path(char *path, char *name, char *ext)
 {
     int i;
 

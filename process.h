@@ -5,6 +5,13 @@
 #include "lib.h"
 #include "file.h"
 
+struct ProcessInfo {
+    int pid;
+	uint8_t name[8];
+    int state;
+	int time;
+};
+
 struct Process {
 	struct List *next;
     int pid;
@@ -15,6 +22,8 @@ struct Process {
 	uint64_t page_map;	
 	uint64_t stack;
 	struct TrapFrame *tf;
+	uint8_t name[8];
+	int ticks;
 };
 
 struct TSS {
@@ -61,5 +70,6 @@ void exit(void);
 void wait(int pid);
 int fork(void);
 int exec(struct Process *process, char *name);
+int read_process_info(char *buffer);
 
 #endif

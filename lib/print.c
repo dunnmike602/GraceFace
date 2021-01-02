@@ -3,7 +3,9 @@
 
 extern int writeu(char *buffer, int buffer_size);
 
-static int udecimal_to_string(char *buffer, int position, uint64_t digits)
+extern char upper(char ch);
+
+int udecimal_to_string(char *buffer, int position, uint64_t digits)
 {
     char digits_map[10] = "0123456789";
     char digits_buffer[25];
@@ -64,6 +66,16 @@ static int read_string(char *buffer, int position, const char *string)
     }
 
     return index;
+}
+
+char upper( char ch)
+{
+    if(ch >= 97 && ch <= 122)
+    {
+         ch = ch - 32;
+    }
+
+    return ch;
 }
 
 int printf(const char *format, ...)

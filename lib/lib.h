@@ -3,7 +3,9 @@
 
 #include "stdint.h"
 
+int udecimal_to_string(char *buffer, int position, uint64_t digits);
 int printf(const char *format, ...);
+char upper(char ch);
 void sleepu(uint64_t ticks);
 void exitu(void);
 void waitu(int pid);
@@ -20,5 +22,6 @@ int get_file_size(int fd);
 int fork(void);
 void exec(char *name);
 int read_root_directory(void *buffer);
+int read_process_info(void *buffer);
 
 #endif
