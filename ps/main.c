@@ -43,8 +43,8 @@ int main(void)
 
     count = read_process_info(buffer);
     
-    printf("\nNAME      STATE      PID     TIME\n");
-    printf("-----------------------------------\n");
+    printf("\nNAME      STATE      PID     TIME (ms)\n");
+    printf("----------------------------------------\n");
     
     for (int i = 0; i < count; i++) 
     {

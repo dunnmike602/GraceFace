@@ -150,7 +150,8 @@ static void schedule(void)
     current_proc->state = PROC_RUNNING;  
     process_control->current_process = current_proc;
 
-    switch_process(prev_proc, current_proc);   
+    current_proc->ticks++;
+    switch_process(prev_proc, current_proc);  
 }
 
 void yield(void)
@@ -175,8 +176,6 @@ void yield(void)
     }
 
     schedule();
-
-    process_control->current_process->ticks++; 
 }
 
 void sleep(int wait)
