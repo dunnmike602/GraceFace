@@ -23,5 +23,5 @@ int fork(void);
 void exec(char *name);
 int read_root_directory(void *buffer);
 int read_process_info(void *buffer);
-
+int restart(void);
 #endif

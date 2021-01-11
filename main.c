@@ -19,4 +19,10 @@ void KMain(void)
    init_system_call();
    init_fs();
    init_process();
+
+   printk("GraceFace 0.1 - A simple Dog Inspired OS\n\n");
+
+   int total = get_total_memory();
+   
+   printk("Total memory is %dmb\n\n", (int64_t)total);
 }

@@ -71,5 +71,7 @@ void wait(int pid);
 int fork(void);
 int exec(struct Process *process, char *name);
 int read_process_info(char *buffer);
+void kill_all(void);
+void kill( struct Process* process);
 
 #endif

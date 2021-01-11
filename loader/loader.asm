@@ -7,14 +7,14 @@ start:
     mov eax,0x80000000
     cpuid
     cmp eax,0x80000001
-    jb NotSupport
+    jb ExModeNotSupport
 
     mov eax,0x80000001
     cpuid
     test edx,(1<<29)
-    jz NotSupport
+    jz LongModeNotSupport
     test edx,(1<<26)
-    jz NotSupport
+    jz GbModeNotSupport
 
     mov ax,0x2000
     mov es,ax
@@ -28,7 +28,7 @@ GetMemInfoStart:
     mov edi,8
     xor ebx,ebx
     int 0x15
-    jc NotSupport
+    jc MemMapFailed
 
 GetMemInfo:
     cmp dword[es:di+16],1
@@ -72,7 +72,7 @@ TestA20:
     jne SetA20LineDone
     mov word[0x7c00],0xb200
     cmp word[es:0x7c10],0xb200
-    je End
+    je SetA20Failed
     
 SetA20LineDone:
     xor ax,ax
@@ -114,7 +114,7 @@ ReadFAT:
     mov ax,100
     call ReadSectors
     test al,al
-    jnz  ReadError
+    jnz  ReadFatError
 
     pop fs
     pop edi
@@ -143,7 +143,7 @@ ReadRemainingSectors:
     mov ax,(203*16*63) % 100
     call ReadSectors
     test al,al
-    jnz  ReadError
+    jnz  ReadFatError
 
     pop fs
     pop edi
@@ -158,8 +158,6 @@ CopyRemainingData:
     add esi,4
     add edi,4
     loop CopyRemainingData
-
-
     cli
     lidt [Idt32Ptr]
 
@@ -184,7 +182,26 @@ ReadSectors:
     setc al
     ret
 
-ReadError:
+ReadFatError:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageLoadFat
+    mov cx,MessageLoadFatLen 
+    int 0x10
+    jmp End
+
+SetA20Failed:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageA20
+    mov cx,MessageA20Len 
+    int 0x10
+    jmp End
+
 NotSupport:
     mov ah,0x13
     mov al,1
@@ -193,7 +210,58 @@ NotSupport:
     mov bp,Message
     mov cx,MessageLen 
     int 0x10
+    jmp End
 
+LongModeNotSupport:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageLM
+    mov cx,MessageLMLen 
+    int 0x10
+    jmp End
+
+GbModeNotSupport:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageGB
+    mov cx,MessageGBLen 
+    int 0x10
+    jmp End
+
+MemMapFailed:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageMem
+    mov cx,MessageMemLen 
+    int 0x10
+    jmp End
+
+ExModeNotSupport:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageEx
+    mov cx,MessageExLen 
+    int 0x10
+    jmp End
+
+ReadError:
+    mov ah,0x13
+    mov al,1
+    mov bx,0xa
+    xor dx,dx
+    mov bp,MessageLoad
+    mov cx,MessageLoadLen 
+    int 0x10
+    jmp End
+    
 End:
     hlt
     jmp End
@@ -264,6 +332,27 @@ LEnd:
 Message:    db "We have an error in boot process"
 MessageLen: equ $-Message
 
+MessageLM:    db "Long Mode (64Bit) is not supported"
+MessageLMLen: equ $-MessageLM
+
+MessageGB:    db "1GB pages are not supported"
+MessageGBLen: equ $-MessageGB
+
+MessageEx:    db "CPUID Extended Mode (0x80000000) is not supported"
+MessageExLen: equ $-MessageEx
+
+MessageMem:    db "BIOS call to get memory map failed"
+MessageMemLen: equ $-MessageMem
+
+MessageLoad:    db "Could not find free memory area to load File Image"
+MessageLoadLen: equ $-MessageLoad
+
+MessageA20:    db "Could not set A20 address line"
+MessageA20Len: equ $-MessageA20
+  
+MessageLoadFat:    db "Error occurred reading sectors from FAT file system"
+MessageLoadFatLen: equ $-MessageLoadFat
+  
 ReadPacket: times 16 db 0
 DriveId: db 0
 LoadImage: db 0
@@ -301,6 +390,7 @@ Gdt64Len: equ $-Gdt64
 
 Gdt64Ptr: dw Gdt64Len-1
           dd Gdt64
+
 
 CModule:
     

@@ -109,7 +109,7 @@ static void init_console_process(void)
 
     ASSERT(setup_uvm(process->page_map, P2V(0x30000), 5120));
 
-    char consoleName[] =  "CONSOLE    " ;
+    char consoleName[] =  "CONSOLE  " ;
     memcpy(process->name, &consoleName, 8);
 
     process->state = PROC_READY;
@@ -227,6 +227,48 @@ void exit(void)
 
     wake_up(-3);
     schedule();
+}
+
+void kill( struct Process* process)
+{
+    struct ProcessControl *process_control;
+    struct HeadList *list;
+
+    process_control = get_pc();
+ 
+    process->state = PROC_KILLED;
+    process->wait = process->pid;
+
+    list = &process_control->kill_list;
+    append_list_tail(list, (struct List*)process);
+
+    wait(process->pid);
+ }
+
+void kill_all(void)
+{
+    int consolePid = -1;
+
+    for (int i = 0; i < NUM_PROC; i++) {
+
+        char restartName[] =  "RESTART" ; 
+                
+        // Do not shut down system idle process (pid 0),  running restart process
+        if( process_table[i].pid != 0 && memcmp( process_table[i].name, &restartName, 7))
+        {
+            int pid;
+            
+            pid = process_table[i].pid;
+
+            char name[] = "        ";
+
+            memcpy(name, &process_table[i].name, 8);
+
+            kill(&process_table[i]);
+
+            printk("Killed Process %u - %s\n", pid, name );
+        }
+    }
 }
 
 void wait(int pid)

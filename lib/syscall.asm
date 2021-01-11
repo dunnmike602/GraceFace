@@ -13,6 +13,7 @@ global fork
 global exec
 global read_root_directory
 global read_process_info
+global restart
 
 writeu:
     sub rsp,16
@@ -181,4 +182,12 @@ read_process_info:
     int 0x80
 
     add rsp,8
+    ret
+
+restart:
+    mov eax,14
+    xor edi,edi
+    
+    int 0x80
+
     ret

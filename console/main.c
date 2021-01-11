@@ -57,7 +57,15 @@ int main(void)
                 exec(buffer);
             }
             else {
-                waitu(pid);
+               
+                 char restartName[] =  "RESTART" ; 
+                
+                if(memcmp( buffer, &restartName, 7) == 0)
+                {
+                    return 0;
+                }
+
+                 waitu(pid);
             }
         }
     }

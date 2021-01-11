@@ -6,6 +6,40 @@
 
 static struct ScreenBuffer screen_buffer = {(char*)P2V(0xb8000), 0, 0};
 
+static void outb(uint16_t port, uint8_t value)
+{
+    __asm("outb %b0, %w1"
+        :: "a"(value), "d"(port));
+}
+
+static uint8_t inb(uint16_t port)
+{
+    uint8_t ret;
+    __asm( "inb %1, %0"
+                   : "=a"(ret)
+                   : "Nd"(port) );
+    return ret;
+}
+
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
+{
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
+ 
+	outb(0x3D4, 0x0B);
+	outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
+}
+
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * 80 + x;
+ 
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, (uint8_t) (pos & 0xFF));
+	outb(0x3D4, 0x0E);
+	outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+}
+
 static int udecimal_to_string(char *buffer, int position, uint64_t digits)
 {
     char digits_map[10] = "0123456789";
@@ -108,12 +142,14 @@ void write_screen(const char *buffer, int size, char color)
         if (row >= 25) {
             memcpy(sb->buffer,sb->buffer+LINE_SIZE,LINE_SIZE*24);
             memset(sb->buffer+LINE_SIZE*24,0,LINE_SIZE);
+
             row--;
         }
     }
 
     sb->column = column;
     sb->row = row;
+    update_cursor(sb->column, sb->row);   
 }
 
 int printk(const char *format, ...)

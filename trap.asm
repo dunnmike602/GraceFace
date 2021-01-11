@@ -33,6 +33,7 @@ global read_cr3
 global swap
 global TrapReturn
 global in_byte
+global restart
 
 Trap:
     push rax
@@ -237,3 +238,25 @@ in_byte:
     ret   
 
 
+restart:
+
+    cli
+
+wait_gate1:
+    in al,64h
+    and al,2
+    jnz wait_gate1
+    mov al,0D1h
+    out 64h,al
+wait_gate2:
+    in al,64h
+    and al,2
+    jnz wait_gate2
+    mov al,0FEh
+    out 60h,al              ; keyboard RESET
+
+    xor rax,rax
+    mov cr3,rax           ; tripple fault
+
+reset_wait:
+    jmp reset_wait
