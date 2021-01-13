@@ -289,6 +289,25 @@ uint32_t get_file_size(struct Process *proc, int fd)
     return proc->file[fd]->fcb->file_size;
 }
 
+uint32_t get_size_from_name(char *path)
+{
+    uint32_t index;
+    uint32_t file_size;
+    uint32_t cluster_index;
+    struct DirEntry *dir_entry;
+    int ret = -1;
+    
+    index = search_file(path);
+
+    if (index != 0xffffffff) {
+        
+        dir_entry = get_root_directory();
+        return dir_entry[index].file_size;
+    }
+
+    return ret;
+}
+
 int read_root_directory(char *buffer)
 {
     struct DirEntry *dir_entry = get_root_directory();

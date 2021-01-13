@@ -71,5 +71,6 @@ uint32_t get_file_size(struct Process *proc, int fd);
 int read_root_file(char *buffer);
 int read_root_directory(char *buffer);
 bool split_path(char *path, char *name, char *ext);
+uint32_t get_size_from_name(char *path);
 
 #endif

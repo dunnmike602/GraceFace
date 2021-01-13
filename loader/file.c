@@ -200,7 +200,7 @@ int load_file(char *path, uint64_t addr)
         cluster_index = dir_entry[index].cluster_index;
         
         if (read_file(cluster_index, (void*)addr, file_size) == file_size) {
-            ret = 0;
+            ret = file_size;
         }
     }
 

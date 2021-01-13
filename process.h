@@ -10,6 +10,8 @@ struct ProcessInfo {
 	uint8_t name[8];
     int state;
 	int time;
+	int64_t stacksize;
+	uint32_t filesize;
 };
 
 struct Process {
@@ -24,6 +26,7 @@ struct Process {
 	struct TrapFrame *tf;
 	uint8_t name[8];
 	int ticks;
+	uint32_t filesize;
 };
 
 struct TSS {

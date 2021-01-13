@@ -32,6 +32,7 @@ static struct Process* find_unused_process(void)
 static struct Process* alloc_new_process(void)
 {
     uint64_t stack_top;
+
     struct Process *proc;
 
     proc = find_unused_process();
@@ -87,6 +88,7 @@ static void init_idle_process(void)
     process->page_map = P2V(read_cr3());
     process->state = PROC_RUNNING;
     process->ticks = 1;
+    process->filesize = 0;
 
     char idleName[] =  "IDLE    " ;
     memcpy(process->name, &idleName, 8);
@@ -107,11 +109,16 @@ static void init_console_process(void)
     process = alloc_new_process();
     ASSERT(process != NULL);
 
-    ASSERT(setup_uvm(process->page_map, P2V(0x30000), 5120));
+    int file_size = (int)get_size_from_name("CONSOLE.BIN");
+
+    ASSERT( file_size > -1);
+
+    ASSERT(setup_uvm(process->page_map, P2V(0x30000), (int)file_size));
 
     char consoleName[] =  "CONSOLE  " ;
     memcpy(process->name, &consoleName, 8);
 
+    process->filesize = file_size;
     process->state = PROC_READY;
     append_list_tail(list, (struct List*)process);
 }
@@ -375,6 +382,7 @@ int exec(struct Process *process, char* name)
     process->tf->ss = 0x18|3;
     process->tf->rsp = 0x400000 + PAGE_SIZE;
     process->tf->rflags = 0x202;
+    process->filesize = size;
 
     return 0;
 }
@@ -389,6 +397,13 @@ int read_process_info(char *buffer)
         process_info_table[i].state = process_table[i].state;
         memcpy(&process_info_table[i].name, &process_table[i].name, 8);
         process_info_table[i].time = process_table[i].ticks * 10; 
+        process_info_table[i].filesize = process_table[i].filesize;
+        
+        if(process_table[i].tf != NULL)
+        {
+            process_info_table[i].stacksize = (0x400000 + PAGE_SIZE) - process_table[i].tf->rsp;
+        }
+        
     }
     
     memcpy(buffer, process_info_table, NUM_PROC * sizeof(struct ProcessInfo));

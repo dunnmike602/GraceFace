@@ -7,6 +7,8 @@ struct ProcessInfo {
 	uint8_t name[8];
     int state;
 	int time;
+	int64_t stacksize;
+	uint32_t filesize;
 };
 
 #define NUM_PROC 10
@@ -43,8 +45,8 @@ int main(void)
 
     count = read_process_info(buffer);
     
-    printf("\nNAME      STATE      PID     TIME (ms)\n");
-    printf("----------------------------------------\n");
+    printf("\nNAME      STATE      PID     TIME (ms)   MEMORY (Bytes) STACK (Bytes)\n");
+    printf("-----------------------------------------------------------------------\n");
     
     for (int i = 0; i < count; i++) 
     {
@@ -84,9 +86,16 @@ int main(void)
             char pid[12] = "        \0";
             udecimal_to_string(pid, 0, buffer[i].pid);
 
-            char time[12] = "          \0";
+            char time[14] = "            \0";
             udecimal_to_string(time, 0, buffer[i].time);
-            printf("%s%s%s%s\n", name, state, pid, time);
+
+            char mem[17] = "               \0";
+            udecimal_to_string(mem, 0, buffer[i].filesize);
+
+            char stack[14] = "            \0";
+            udecimal_to_string(stack, 0, buffer[i].stacksize);
+
+            printf("%s%s%s%s%s%s\n", name, state, pid, time, mem, stack);
      }
    }
 
